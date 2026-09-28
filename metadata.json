@@ -1,0 +1,6 @@
+{
+  "name": "AI-Driven Metro Train Induction & Scheduling",
+  "description": "AI-driven train induction planning, demand prediction, fleet maintenance tracking, and scheduling platform for metro rail systems.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

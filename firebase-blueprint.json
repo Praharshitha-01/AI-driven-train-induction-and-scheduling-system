@@ -1,0 +1,135 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user account with role-based access control for metro depot operations.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["ROLE_ADMIN", "ROLE_DEPOT_MANAGER"] },
+        "depotId": { "type": "string", "maxLength": 64 },
+        "firstLogin": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Depot": {
+      "title": "Depot",
+      "description": "Metro rail depot configuration and physical track topology.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "code": { "type": "string", "maxLength": 32 },
+        "name": { "type": "string", "maxLength": 128 },
+        "location": { "type": "string", "maxLength": 128 },
+        "totalTracks": { "type": "number" },
+        "totalCapacity": { "type": "number" },
+        "nominalTrainCapacity": { "type": "number" },
+        "comfortFactor": { "type": "number" },
+        "minStandbyBuffer": { "type": "number" }
+      },
+      "required": ["id", "code", "name"]
+    },
+    "Train": {
+      "title": "Train",
+      "description": "Physical train set in the depot fleet with operational readiness and maintenance state.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "trainId": { "type": "string", "maxLength": 32 },
+        "depotId": { "type": "string", "maxLength": 64 },
+        "trainType": { "type": "string", "maxLength": 64 },
+        "passengerCapacity": { "type": "number" },
+        "mileage": { "type": "number" },
+        "maintenanceStatus": { "type": "string", "enum": ["OK", "DUE", "IN_PROGRESS"] },
+        "cleaningStatus": { "type": "string", "enum": ["CLEAN", "DIRTY", "IN_PROGRESS"] },
+        "operationalReadiness": { "type": "boolean" },
+        "currentStatus": { "type": "string", "enum": ["DEPLOYED", "STANDBY", "MAINTENANCE", "DEPOT_STATIONARY"] },
+        "trackNumber": { "type": "number" },
+        "lastMaintenanceDate": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "trainId", "depotId", "mileage", "maintenanceStatus", "operationalReadiness"]
+    },
+    "MaintenanceReport": {
+      "title": "MaintenanceReport",
+      "description": "Scanned or uploaded maintenance report and OCR extraction log.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "depotId": { "type": "string", "maxLength": 64 },
+        "uploadedBy": { "type": "string", "maxLength": 128 },
+        "fileName": { "type": "string", "maxLength": 256 },
+        "fileType": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["PENDING_REVIEW", "APPROVED", "REJECTED"] },
+        "extractedRecordsCount": { "type": "number" },
+        "confidenceScore": { "type": "number" },
+        "extractedText": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "depotId", "fileName", "status"]
+    },
+    "InductionDecision": {
+      "title": "InductionDecision",
+      "description": "AI-generated train induction plan with look-ahead projection.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "depotId": { "type": "string", "maxLength": 64 },
+        "timePeriod": { "type": "string", "maxLength": 32 },
+        "predictedDemand": { "type": "number" },
+        "requiredTrains": { "type": "number" },
+        "deployedCount": { "type": "number" },
+        "standbyCount": { "type": "number" },
+        "maintenanceCount": { "type": "number" },
+        "lookaheadScore": { "type": "number" },
+        "reward": { "type": "number" },
+        "status": { "type": "string", "enum": ["ACTIVE", "EXECUTED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "depotId", "timePeriod", "predictedDemand", "requiredTrains"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Audit trail of critical user actions, OCR approvals, and induction dispatches.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "depotId": { "type": "string", "maxLength": 64 },
+        "action": { "type": "string", "maxLength": 64 },
+        "details": { "type": "string", "maxLength": 1024 },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and assigned role information."
+    },
+    "/depots/{depotId}": {
+      "schema": { "$ref": "#/entities/Depot" },
+      "description": "Depot specifications and operating constraints."
+    },
+    "/depots/{depotId}/trains/{trainId}": {
+      "schema": { "$ref": "#/entities/Train" },
+      "description": "Train sets in the depot fleet with operational telemetry."
+    },
+    "/depots/{depotId}/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/MaintenanceReport" },
+      "description": "Uploaded maintenance documents and OCR diff records."
+    },
+    "/depots/{depotId}/decisions/{decisionId}": {
+      "schema": { "$ref": "#/entities/InductionDecision" },
+      "description": "Historical and active AI train induction plans."
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "System-wide immutable audit logs for operational accountability."
+    }
+  }
+}
